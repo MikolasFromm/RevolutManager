@@ -72,8 +72,18 @@ class Income(db.Model):
     norm_amount = db.Column(db.Float, nullable=False)
     # for historytical reference, store the rate used at the time of entry
     norm_rate = db.Column(db.Float, nullable=True)
+    # whether the rate is fixed (True) or should use current rate (False)
+    fixed_rate = db.Column(db.Boolean, nullable=False, default=True)
     
     rate = db.relationship('PredefinedRate', backref=db.backref('incomes', lazy=True))
+    
+    @property
+    def current_norm_amount(self):
+        """Calculate current normalized amount - fixed rate uses historical rate, dynamic uses current rate"""
+        if self.fixed_rate:
+            return self.norm_amount  # Use stored normalized amount
+        else:
+            return self.amount * self.rate.rate  # Use current rate
 
 
 class Cost(db.Model):
@@ -403,7 +413,10 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
 
     @bp.route('/balance', methods=['GET'])
     def get_balance():
-        total_income = db.session.query(db.func.coalesce(db.func.sum(Income.norm_amount), 0.0)).scalar()
+        # For incomes, we need to handle fixed vs dynamic rates
+        incomes = Income.query.all()
+        total_income = sum(i.current_norm_amount for i in incomes)
+        
         total_costs = db.session.query(db.func.coalesce(db.func.sum(Cost.norm_amount), 0.0)).scalar()
         
         # For expected costs, calculate using current rates (dynamic)
@@ -446,6 +459,7 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
         amount = float(data['amount'])
         rate_id = int(data['rate_id'])
         desc = data['description']
+        fixed_rate = data.get('fixed_rate', True)  # Default to True (fixed rate)
         
         # Get the rate
         rate = db.session.get(PredefinedRate, rate_id)
@@ -462,10 +476,11 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
                         currency=currency, 
                         rate_id=rate_id,
                         norm_rate=rate_value,  # Store historical rate
-                        norm_amount=norm_amount)
+                        norm_amount=norm_amount,
+                        fixed_rate=fixed_rate)
         db.session.add(income)
         db.session.commit()
-        return {"id": income.id, "norm_amount": norm_amount, "currency": currency}
+        return {"id": income.id, "norm_amount": norm_amount, "currency": currency, "fixed_rate": fixed_rate}
 
     @bp.route('/income', methods=['GET'])
     def list_incomes():
@@ -479,7 +494,9 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
                 "currency": i.currency, 
                 "rate": i.norm_rate,
                 "rate_id": i.rate_id,
-                "rate_name": f"{i.rate.from_currency}-{i.rate.to_currency}" if i.rate else "legacy"
+                "rate_name": f"{i.rate.from_currency}-{i.rate.to_currency}" if i.rate else "legacy",
+                "fixed_rate": i.fixed_rate,
+                "current_norm_amount": i.current_norm_amount
             } for i in incomes
         ]}
 

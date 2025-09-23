@@ -33,6 +33,17 @@
               <button class="btn btn-success btn-sm w-100" type="submit">Add</button>
             </div>
           </div>
+          <div class="row g-1 align-items-center mb-1">
+            <div class="col-2"></div>
+            <div class="col-10">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="checkbox" name="fixed_rate" id="fixedRate" checked>
+                <label class="form-check-label" for="fixedRate">
+                  <small>Fix rate</small>
+                </label>
+              </div>
+            </div>
+          </div>
         </form>
 
         <form id="costForm" class="mb-1">
@@ -234,14 +245,18 @@ async function loadIncomes(){
   if(list.length===0){ root.innerHTML = '<div class="text-muted">No incomes yet</div>'; return; }
   let html = '<ul class="list-group">';
   for(const i of list){
+  const rateType = i.fixed_rate ? 'fixed' : 'dynamic';
+  const normAmount = i.current_norm_amount.toFixed(2);
+  
   html += `<li class="list-group-item d-flex justify-content-between align-items-center">
     <div>
       ${i.description||'(no desc)'}<br>
-      <small class="text-muted">${new Date(i.date).toLocaleString()}</small>
+      <small class="text-muted">${new Date(i.date).toLocaleString()}</small><br>
+      <span class="badge bg-${i.fixed_rate ? 'secondary' : 'primary'}">${rateType} rate</span>
     </div>
     <div>
-      ${i.amount.toFixed(2)} ${i.currency}<br>
-      <small class="text-muted">${i.rate_name} (${i.rate.toFixed(4)})</small>
+      ${i.amount.toFixed(2)} ${i.currency} → ${normAmount} GBP<br>
+      <small class="text-muted">${i.rate_name} (${i.fixed_rate ? 'original: ' + i.rate.toFixed(4) : 'current: ' + (i.current_norm_amount/i.amount).toFixed(4)})</small>
     </div>
     <div class="ms-3">
       <button class="btn btn-sm btn-outline-primary me-1" onclick="editIncome(${i.id})">Edit</button>
@@ -464,12 +479,20 @@ document.getElementById('incomeForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const f = e.target;
   if(!f.rate_id.value) { showMsg('Please select a rate', 'alert-danger'); return; }
-  const body = {amount: parseFloat(f.amount.value), rate_id: parseInt(f.rate_id.value), description: f.description.value};
+  const body = {
+    amount: parseFloat(f.amount.value), 
+    rate_id: parseInt(f.rate_id.value), 
+    description: f.description.value,
+    fixed_rate: f.fixed_rate.checked
+  };
   const res = await submitForm('/income', body);
   const data = await res.json();
   if(!res.ok){ showMsg(data.error || 'Error', 'alert-danger'); return; }
-  showMsg(`Income added: ${data.norm_amount.toFixed(2)} GBP (${data.currency})`, 'alert-success');
+  const rateType = data.fixed_rate ? 'fixed' : 'dynamic';
+  showMsg(`Income added: ${data.norm_amount.toFixed(2)} GBP (${data.currency}, ${rateType} rate)`, 'alert-success');
   f.reset();
+  // Reset the checkbox to checked (default)
+  f.fixed_rate.checked = true;
   await loadBalance();
   await loadIncomes();
 });
