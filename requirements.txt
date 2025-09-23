@@ -1,0 +1,5 @@
+Flask==2.2.5
+Flask-SQLAlchemy==3.0.3
+pytest==7.4.0
+Werkzeug==2.2.3
+requests==2.31.0
