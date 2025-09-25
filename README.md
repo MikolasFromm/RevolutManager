@@ -11,4 +11,4 @@ Supports FX rates as well, therefore the incomes and expected costs can be defin
 Dynamical update of the CZK->GBP rate is supported, however, therefore the actual balance (with respect to the GBP) is always recalculated.
 
 ## Preview
-[Application preview](./image.png)
+![Application preview](./image.png)
