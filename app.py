@@ -714,6 +714,69 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
         db.session.commit()
         return {"deleted": cost_id}
 
+    @bp.route('/cost/<int:cost_id>/split', methods=['POST'])
+    def split_cost(cost_id):
+        """Split a cost into two parts: reduce original cost and create new cost"""
+        cost = db.session.get(Cost, cost_id)
+        if cost is None:
+            return {"error": "cost not found"}, 404
+        
+        data = request.get_json() or {}
+        if 'split_amount' not in data or 'new_description' not in data:
+            return {"error": "missing required fields: split_amount, new_description"}, 400
+        
+        try:
+            split_amount = float(data['split_amount'])
+        except ValueError:
+            return {"error": "split_amount must be a number"}, 400
+        
+        if split_amount <= 0:
+            return {"error": "split_amount must be positive"}, 400
+        
+        if split_amount >= cost.amount:
+            return {"error": "split_amount must be less than original amount"}, 400
+        
+        new_description = data['new_description']
+        
+        # Calculate the split amounts
+        remaining_amount = cost.amount - split_amount
+        split_norm_amount = split_amount * (cost.norm_amount / cost.amount)  # Proportional norm amount
+        remaining_norm_amount = cost.norm_amount - split_norm_amount
+        
+        # Update the original cost (reduce it)
+        cost.amount = remaining_amount
+        cost.norm_amount = remaining_norm_amount
+        
+        # Create the new split cost
+        new_cost = Cost(
+            date=cost.date,  # Same date as original
+            description=new_description,
+            amount=split_amount,
+            currency=cost.currency,
+            rate_id=cost.rate_id,
+            norm_amount=split_norm_amount,
+            norm_rate=cost.norm_rate,
+            expected_ref_id=cost.expected_ref_id  # Same expected reference if any
+        )
+        
+        db.session.add(new_cost)
+        db.session.commit()
+        
+        return {
+            "original_cost": {
+                "id": cost.id,
+                "amount": cost.amount,
+                "norm_amount": cost.norm_amount,
+                "description": cost.description
+            },
+            "new_cost": {
+                "id": new_cost.id,
+                "amount": new_cost.amount,
+                "norm_amount": new_cost.norm_amount,
+                "description": new_cost.description
+            }
+        }
+
     @bp.route('/expected/<int:expected_id>', methods=['DELETE'])
     def delete_expected(expected_id):
         expected = db.session.get(ExpectedCost, expected_id)
