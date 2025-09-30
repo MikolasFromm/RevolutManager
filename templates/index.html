@@ -255,7 +255,14 @@ async function loadBalance(){
   const res = await fetch('/balance');
   const data = await res.json();
   document.getElementById('balance').textContent = `${data.balance.toFixed(2)} GBP (${data.balance_czk.toFixed(2)} CZK)`;
+  
+  // Calculate available cash (income - costs)
+  const availCash = data.total_income - data.total_costs;
+  const availCashCzk = data.total_income_czk - data.total_costs_czk;
+  
   document.getElementById('totals').innerHTML = `
+    <small>Avail. cash: ${availCash.toFixed(2)} GBP <span class="text-muted">(${availCashCzk.toFixed(2)} CZK)</span></small><br>
+    <hr>
     <small>Income: ${data.total_income.toFixed(2)} GBP <span class="text-muted">(${data.total_income_czk.toFixed(2)} CZK)</span></small><br>
     <small>Costs: ${data.total_costs.toFixed(2)} GBP <span class="text-muted">(${data.total_costs_czk.toFixed(2)} CZK)</span></small><br>
     <small>Expected: ${data.total_expected_remaining.toFixed(2)} GBP <span class="text-muted">(${data.total_expected_remaining_czk.toFixed(2)} CZK)</span></small>
