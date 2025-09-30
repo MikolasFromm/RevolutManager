@@ -11,31 +11,65 @@
     </div>
 
     <div class="card shadow-sm mt-3">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h6 class="card-title mb-0">Monthly Summary (Last 3 Months)</h6>
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="showTargets" onchange="toggleTargets()">
+            <label class="form-check-label" for="showTargets">
+              <small>Edit Target</small>
+            </label>
+          </div>
+        </div>
+        <div id="monthlySummary">Loading...</div>
+        <div id="targetEditor" style="display: none;" class="mt-3">
+          <h6>Monthly Cost Target</h6>
+          <form id="targetForm">
+            <div class="row g-2 align-items-center">
+              <div class="col-4">
+                <input type="number" id="targetAmount" class="form-control form-control-sm" placeholder="Target amount (GBP)" step="0.01" required>
+              </div>
+              <div class="col-auto">
+                <button type="submit" class="btn btn-success btn-sm">Save</button>
+              </div>
+              <div class="col-auto">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="deleteTarget()">Delete</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm mt-3">
       <div class="card-body py-3">
         <h6 class="card-title mb-2">Actions</h6>
         <form id="incomeForm" class="mb-1">
           <div class="row g-1 align-items-center mb-1">
-            <div class="col-2">
+            <div class="col-auto" style="width: 70px;">
               <small class="text-muted">Income</small>
             </div>
             <div class="col-2">
               <input name="amount" class="form-control form-control-sm" placeholder="Amount">
             </div>
-            <div class="col-3">
-              <select name="rate_id" class="form-control form-control-sm" required>
-                <option value="">Rate...</option>
+            <div class="col-2">
+              <select name="currency" class="form-control form-control-sm" required>
+                <option value="">Currency...</option>
               </select>
             </div>
             <div class="col-3">
               <input name="description" class="form-control form-control-sm" placeholder="Description">
             </div>
             <div class="col-2">
-              <button class="btn btn-success btn-sm w-100" type="submit">Add</button>
+              <input name="date" type="datetime-local" class="form-control form-control-sm">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-success btn-sm" type="submit">Add</button>
             </div>
           </div>
           <div class="row g-1 align-items-center mb-1">
-            <div class="col-2"></div>
-            <div class="col-10">
+            <div class="col-auto" style="width: 70px;"></div>
+            <div class="col">
               <div class="form-check form-check-inline">
                 <input class="form-check-input" type="checkbox" name="fixed_rate" id="fixedRate" checked>
                 <label class="form-check-label" for="fixedRate">
@@ -48,44 +82,47 @@
 
         <form id="costForm" class="mb-1">
           <div class="row g-1 align-items-center mb-1">
-            <div class="col-2">
+            <div class="col-auto" style="width: 70px;">
               <small class="text-muted">Cost</small>
             </div>
             <div class="col-2">
               <input name="amount" class="form-control form-control-sm" placeholder="Amount">
             </div>
-            <div class="col-3">
-              <select name="rate_id" class="form-control form-control-sm" required>
-                <option value="">Rate...</option>
+            <div class="col-2">
+              <select name="currency" class="form-control form-control-sm" required>
+                <option value="">Currency...</option>
               </select>
             </div>
             <div class="col-3">
               <input name="description" class="form-control form-control-sm" placeholder="Description">
             </div>
             <div class="col-2">
-              <button class="btn btn-danger btn-sm w-100" type="submit">Add</button>
+              <input name="date" type="datetime-local" class="form-control form-control-sm">
+            </div>
+            <div class="col-auto">
+              <button class="btn btn-danger btn-sm" type="submit">Add</button>
             </div>
           </div>
         </form>
 
         <form id="expectedForm" class="mb-1">
           <div class="row g-1 align-items-center mb-1">
-            <div class="col-2">
+            <div class="col-auto" style="width: 70px;">
               <small class="text-muted">Expected</small>
             </div>
             <div class="col-2">
               <input name="amount" class="form-control form-control-sm" placeholder="Amount">
             </div>
-            <div class="col-3">
-              <select name="rate_id" class="form-control form-control-sm" required>
-                <option value="">Rate...</option>
+            <div class="col-2">
+              <select name="currency" class="form-control form-control-sm" required>
+                <option value="">Currency...</option>
               </select>
             </div>
-            <div class="col-3">
+            <div class="col-5">
               <input name="description" class="form-control form-control-sm" placeholder="Description">
             </div>
-            <div class="col-2">
-              <button class="btn btn-primary btn-sm w-100" type="submit">Add</button>
+            <div class="col-auto">
+              <button class="btn btn-primary btn-sm" type="submit">Add</button>
             </div>
           </div>
         </form>
@@ -100,29 +137,9 @@
           <h6 class="card-title mb-0">Exchange Rates</h6>
           <button class="btn btn-outline-info btn-sm" onclick="updateCnbRates()">Update CNB</button>
         </div>
-        <form id="rateForm" class="mb-2">
-          <div class="row g-1 align-items-center mb-2">
-            <div class="col-1">
-              <input name="from_currency" class="form-control form-control-sm" placeholder="From" maxlength="3">
-            </div>
-            <div class="col-auto">
-              <span class="small">→</span>
-            </div>
-            <div class="col-1">
-              <input name="to_currency" class="form-control form-control-sm" placeholder="To" maxlength="3">
-            </div>
-            <div class="col-2">
-              <input name="rate" class="form-control form-control-sm" placeholder="Rate" type="number" step="any">
-            </div>
-            <div class="col-3">
-              <input name="description" class="form-control form-control-sm" placeholder="Description" maxlength="255">
-            </div>
-            <div class="col-auto">
-              <button class="btn btn-outline-primary btn-sm" type="submit">Add</button>
-            </div>
-          </div>
-        </form>
-        <div id="ratesList" class="mt-2" style="font-size: 0.9em;">Loading rates...</div>
+        <div id="ratesTable" class="mt-2">
+          <div class="text-muted">Loading rates...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -151,64 +168,171 @@
 </div>
 
 <script>
-let availableRates = [];
 
-async function loadRates(){
-  const res = await fetch('/rates');
-  const data = await res.json();
-  availableRates = data.rates || [];
-  
-  // Update all rate dropdowns
-  const rateSelects = document.querySelectorAll('select[name="rate_id"]');
-  rateSelects.forEach(select => {
-    const currentValue = select.value;
-    select.innerHTML = '<option value="">Select Rate...</option>';
-    availableRates.forEach(rate => {
-      const option = document.createElement('option');
-      option.value = rate.id;
-      option.textContent = `${rate.name} (${rate.rate.toFixed(4)}) → ${rate.to_currency}`;
-      if(currentValue == rate.id) option.selected = true;
-      select.appendChild(option);
-    });
-  });
-  
-  // Update rates management list
-  const ratesList = document.getElementById('ratesList');
-  if(availableRates.length === 0){
-    ratesList.innerHTML = '<div class="text-muted">No rates defined</div>';
-    return;
-  }
-  
-  let html = '<div class="list-group list-group-flush">';
-  availableRates.forEach(rate => {
-    const isOfficial = !rate.description;
-    const badgeClass = isOfficial ? 'bg-primary' : 'bg-secondary';
-    const badgeText = isOfficial ? 'CNB' : rate.description;
+async function loadCurrencies(){
+  try {
+    const res = await fetch('/currencies');
+    const data = await res.json();
+    const currencies = data.currencies || [];
     
-    html += `<div class="list-group-item d-flex justify-content-between align-items-center">
-      <div>
-        <strong>${rate.from_currency}-${rate.to_currency}</strong>
-        <span class="badge ${badgeClass} ms-2">${rate.rate.toFixed(4)}</span>
-        ${rate.description ? `<br><small class="text-muted">${rate.description}</small>` : '<br><small class="text-muted">Official CNB rate</small>'}
-      </div>
-      <div>
-        <button class="btn btn-sm btn-outline-secondary me-1" onclick="editRate(${rate.id}, ${rate.rate})">Edit</button>
-        <button class="btn btn-sm btn-outline-danger" onclick="deleteRate(${rate.id})" ${isOfficial ? 'title="Cannot delete official rates"' : ''} ${isOfficial ? 'disabled' : ''}>Delete</button>
-      </div>
-    </div>`;
-  });
-  html += '</div>';
-  ratesList.innerHTML = html;
+    // Update all currency dropdowns
+    const currencySelects = document.querySelectorAll('select[name="currency"]');
+    currencySelects.forEach(select => {
+      const currentValue = select.value;
+      select.innerHTML = '<option value="">Currency...</option>';
+      currencies.forEach(currency => {
+        const option = document.createElement('option');
+        option.value = currency.code;
+        option.textContent = `${currency.code}`;
+        if(currentValue === currency.code) option.selected = true;
+        select.appendChild(option);
+      });
+    });
+  } catch (error) {
+    console.error('Error loading currencies:', error);
+  }
+}
+
+async function loadAllRates(){
+  try {
+    const res = await fetch('/rates');
+    const data = await res.json();
+    const rates = data.rates || [];
+    
+    const ratesTable = document.getElementById('ratesTable');
+    
+    if (rates.length === 0) {
+      ratesTable.innerHTML = '<div class="text-muted">No rates available</div>';
+      return;
+    }
+    
+    // Define which rates to display (priority rates)
+    const displayRates = [
+      'GBP→CZK',  // Inverse of main conversion rate
+      'EUR→CZK',  // Common currency
+      'CZK→GBP',  // Main conversion rate
+      'USD→GBP',  // Common currency
+      'EUR→GBP'   // Common currency
+    ];
+    
+    // Filter rates to show only the ones we want
+    const filteredRates = rates.filter(rate => {
+      const rateKey = `${rate.from_currency}→${rate.to_currency}`;
+      return displayRates.includes(rateKey);
+    });
+    
+    if (filteredRates.length === 0) {
+      ratesTable.innerHTML = '<div class="text-muted small">No priority rates available</div>';
+      return;
+    }
+    
+    // Create ultra-compact table (CNB rates only)
+    let html = `<table style="font-size: 0.75rem; line-height: 1; width: 100%; border-collapse: collapse;">`;
+    
+    // Sort rates by display priority
+    filteredRates.sort((a, b) => {
+      const aKey = `${a.from_currency}→${a.to_currency}`;
+      const bKey = `${b.from_currency}→${b.to_currency}`;
+      return displayRates.indexOf(aKey) - displayRates.indexOf(bKey);
+    });
+    
+    filteredRates.forEach(rate => {
+      html += `<tr style="height: 18px;">
+        <td style="padding: 1px 4px; font-weight: 500; width: 45%;">${rate.from_currency}→${rate.to_currency}</td>
+        <td style="padding: 1px 4px; text-align: right; font-family: monospace; width: 55%;">${rate.rate.toFixed(4)}</td>
+      </tr>`;
+    });
+    
+    html += '</table>';
+    ratesTable.innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error loading exchange rates:', error);
+    document.getElementById('ratesTable').innerHTML = '<div class="text-danger">Error loading rates</div>';
+  }
 }
 async function loadBalance(){
   const res = await fetch('/balance');
   const data = await res.json();
-  document.getElementById('balance').textContent = `${data.balance.toFixed(2)} (${data.balance_czk.toFixed(2)} CZK)`;
+  document.getElementById('balance').textContent = `${data.balance.toFixed(2)} GBP (${data.balance_czk.toFixed(2)} CZK)`;
   document.getElementById('totals').innerHTML = `
-    <small>Income: ${data.total_income.toFixed(2)} <span class="text-muted">(${data.total_income_czk.toFixed(2)} CZK)</span></small><br>
-    <small>Costs: ${data.total_costs.toFixed(2)} <span class="text-muted">(${data.total_costs_czk.toFixed(2)} CZK)</span></small><br>
-    <small>Expected: ${data.total_expected_remaining.toFixed(2)} <span class="text-muted">(${data.total_expected_remaining_czk.toFixed(2)} CZK)</span></small>
+    <small>Income: ${data.total_income.toFixed(2)} GBP <span class="text-muted">(${data.total_income_czk.toFixed(2)} CZK)</span></small><br>
+    <small>Costs: ${data.total_costs.toFixed(2)} GBP <span class="text-muted">(${data.total_costs_czk.toFixed(2)} CZK)</span></small><br>
+    <small>Expected: ${data.total_expected_remaining.toFixed(2)} GBP <span class="text-muted">(${data.total_expected_remaining_czk.toFixed(2)} CZK)</span></small>
   `;
+}
+
+async function loadMonthlySummary(){
+  try {
+    const res = await fetch('/monthly-summary?months=3');
+    const data = await res.json();
+    const summaries = data.summaries || [];
+    const root = document.getElementById('monthlySummary');
+    
+    if(summaries.length === 0) { 
+      root.innerHTML = '<div class="text-muted">No data available</div>'; 
+      return; 
+    }
+    
+    let html = '<div class="table-responsive">';
+    html += '<table class="table table-sm table-borderless mb-0">';
+    html += '<thead><tr>';
+    html += '<th style="font-size: 0.85rem;">Month</th>';
+    html += '<th style="font-size: 0.85rem;" class="text-end">Income</th>';
+    html += '<th style="font-size: 0.85rem;" class="text-end">Costs</th>';
+    html += '<th style="font-size: 0.85rem;" class="text-end">Balance</th>';
+    html += '</tr></thead><tbody>';
+    
+    for(const summary of summaries) {
+      const monthYear = summary.month === new Date().getMonth() + 1 && summary.year === new Date().getFullYear() 
+                       ? `${summary.month_name} (current)` 
+                       : `${summary.month_name} ${summary.year}`;
+      
+      html += '<tr>';
+      html += `<td style="font-size: 0.85rem;"><strong>${monthYear}</strong></td>`;
+      
+      if(data.has_czk) {
+        html += `<td style="font-size: 0.75rem;" class="text-end">
+                   ${summary.income.toFixed(0)} GBP<br>
+                   <small class="text-muted">${summary.income_czk.toFixed(0)} CZK</small>
+                 </td>`;
+        // Display costs with target diff if available
+        if (summary.target_costs !== null && summary.cost_diff !== null) {
+          const diffColor = summary.cost_diff >= 0 ? 'text-success' : 'text-danger';
+          html += `<td style="font-size: 0.75rem;" class="text-end">
+                     ${summary.costs.toFixed(0)} GBP <span class="${diffColor}">(${summary.cost_diff >= 0 ? '+' : ''}${summary.cost_diff.toFixed(0)})</span><br>
+                     <small class="text-muted">${summary.costs_czk.toFixed(0)} CZK <span class="${diffColor}">(${summary.cost_diff_czk >= 0 ? '+' : ''}${summary.cost_diff_czk.toFixed(0)})</span></small>
+                   </td>`;
+        } else {
+          html += `<td style="font-size: 0.75rem;" class="text-end">
+                     ${summary.costs.toFixed(0)} GBP<br>
+                     <small class="text-muted">${summary.costs_czk.toFixed(0)} CZK</small>
+                   </td>`;
+        }
+        html += `<td style="font-size: 0.75rem;" class="text-end">
+                   <strong>${summary.balance.toFixed(0)} GBP</strong><br>
+                   <small class="text-muted">${summary.balance_czk.toFixed(0)} CZK</small>
+                 </td>`;
+      } else {
+        // Display costs with target diff if available
+        if (summary.target_costs !== null && summary.cost_diff !== null) {
+          const diffColor = summary.cost_diff >= 0 ? 'text-success' : 'text-danger';
+          html += `<td style="font-size: 0.85rem;" class="text-end">${summary.costs.toFixed(2)} GBP <span class="${diffColor}">(${summary.cost_diff >= 0 ? '+' : ''}${summary.cost_diff.toFixed(2)})</span></td>`;
+        } else {
+          html += `<td style="font-size: 0.85rem;" class="text-end">${summary.costs.toFixed(2)} GBP</td>`;
+        }
+        html += `<td style="font-size: 0.85rem;" class="text-end"><strong>${summary.balance.toFixed(2)} GBP</strong></td>`;
+      }
+      html += '</tr>';
+    }
+    
+    html += '</tbody></table></div>';
+    root.innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error loading monthly summary:', error);
+    document.getElementById('monthlySummary').innerHTML = '<div class="text-danger">Error loading summary</div>';
+  }
 }
 
 async function loadExpected(){
@@ -223,6 +347,7 @@ async function loadExpected(){
     html += `<li class="list-group-item d-flex justify-content-between align-items-center">
       <div>
         <strong>${e.description||'(no description)'}</strong><br>
+        <small class="text-muted">Created: ${new Date(e.created).toLocaleString()}</small><br>
         Amount: ${e.amount.toFixed(2)} ${e.currency} (${e.rate_name})<br>
         Remaining: ${e.remaining.toFixed(2)} GBP
       </div>
@@ -301,6 +426,7 @@ async function deleteIncome(id){
   showMsg('Income deleted','alert-success');
   await loadIncomes();
   await loadBalance();
+  await loadMonthlySummary();
 }
 
 async function deleteCost(id){
@@ -310,6 +436,7 @@ async function deleteCost(id){
   await loadExpected();
   await loadCosts();
   await loadBalance();
+  await loadMonthlySummary();
 }
 
 async function deleteExpected(id){
@@ -321,37 +448,14 @@ async function deleteExpected(id){
   await loadCosts();
 }
 
-async function deleteRate(id){
-  if(!confirm('Delete this rate? This will fail if the rate is being used.')) return;
-  const res = await fetch(`/rates/${id}`, {method:'DELETE'});
-  if(!res.ok){ const d = await res.json(); showMsg(d.error||'Error', 'alert-danger'); return; }
-  showMsg('Rate deleted','alert-success');
-  await loadRates();
-}
-
-async function editRate(id, currentRate){
-  const newRate = prompt(`Edit rate (current: ${currentRate}):`, currentRate);
-  if(!newRate || newRate == currentRate) return;
-  const res = await fetch(`/rates/${id}`, {
-    method:'PUT', 
-    headers:{'Content-Type':'application/json'}, 
-    body: JSON.stringify({rate: parseFloat(newRate)})
-  });
-  if(!res.ok){ const d = await res.json(); showMsg(d.error||'Error', 'alert-danger'); return; }
-  const data = await res.json();
-  showMsg(`Rate updated${data.inverse_updated ? ' (inverse also updated)' : ''}`, 'alert-success');
-  await loadRates();
-  await loadBalance();
-  await loadExpected();
-}
-
 async function updateCnbRates(){
-  showMsg('Updating rates from CNB...', 'alert-info');
+  showMsg('Updating exchange rates from CNB...', 'alert-info');
   const res = await fetch('/rates/update-cnb', {method:'POST'});
   const data = await res.json();
   if(!res.ok){ showMsg(data.error || 'Error updating rates', 'alert-danger'); return; }
-  showMsg('Rates updated from CNB successfully!', 'alert-success');
-  await loadRates();
+  showMsg('Exchange rates updated from CNB successfully!', 'alert-success');
+  await loadAllRates();
+  await loadCurrencies();
   await loadBalance();
   await loadExpected();
 }
@@ -360,6 +464,19 @@ function showMsg(text, cls='alert-info'){
   const box = document.getElementById('messages');
   box.innerHTML = `<div class="alert ${cls} mt-2" role="alert">${text}</div>`;
   setTimeout(()=>box.innerHTML='',4000);
+}
+
+function setDefaultDateTime() {
+  // Set default datetime-local values to current date/time
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  const defaultValue = now.toISOString().slice(0, 16);
+  
+  document.querySelectorAll('input[type="datetime-local"][name="date"]').forEach(input => {
+    if (!input.value) {
+      input.value = defaultValue;
+    }
+  });
 }
 
 async function submitForm(url, body){
@@ -386,29 +503,77 @@ async function editIncome(id){
   const income = data.incomes.find(i => i.id === id);
   if(!income) { showMsg('Income not found', 'alert-danger'); return; }
   
-  const newAmount = prompt(`Edit amount (current: ${income.amount}):`, income.amount);
-  const newDescription = prompt(`Edit description (current: ${income.description || ''}):`, income.description || '');
-
-  if ((!newAmount || newAmount == income.amount) && (newDescription === null || newDescription === income.description)) return;
+  // Create a modal form
+  const modal = document.createElement('div');
+  modal.className = 'modal fade';
+  modal.innerHTML = `
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Income</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="editIncomeForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Amount</label>
+              <input name="amount" type="number" step="0.01" class="form-control" value="${income.amount}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <input name="description" class="form-control" value="${income.description || ''}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Date</label>
+              <input name="date" type="datetime-local" class="form-control" value="${new Date(income.date).toISOString().slice(0, 16)}" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
   
-  const updateRes = await fetch(`/income/${id}`, {
-    method:'PUT', 
-    headers:{'Content-Type':'application/json'}, 
-    body: JSON.stringify({
-      amount: parseFloat(newAmount),
-      description: newDescription
-    })
+  document.body.appendChild(modal);
+  const modalInstance = new bootstrap.Modal(modal);
+  modalInstance.show();
+  
+  // Handle form submission
+  modal.querySelector('#editIncomeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const updateData = {
+      amount: parseFloat(formData.get('amount')),
+      description: formData.get('description'),
+      date: new Date(formData.get('date')).toISOString()
+    };
+    
+    const updateRes = await fetch(`/income/${id}`, {
+      method:'PUT', 
+      headers:{'Content-Type':'application/json'}, 
+      body: JSON.stringify(updateData)
+    });
+    
+    if(!updateRes.ok){ 
+      const d = await updateRes.json(); 
+      showMsg(d.error||'Error', 'alert-danger'); 
+      return; 
+    }
+    
+    showMsg('Income updated successfully', 'alert-success');
+    modalInstance.hide();
+    await loadIncomes();
+    await loadBalance();
+    await loadMonthlySummary();
   });
   
-  if(!updateRes.ok){ 
-    const d = await updateRes.json(); 
-    showMsg(d.error||'Error', 'alert-danger'); 
-    return; 
-  }
-  
-  showMsg('Income updated successfully', 'alert-success');
-  await loadIncomes();
-  await loadBalance();
+  // Clean up modal when hidden
+  modal.addEventListener('hidden.bs.modal', () => {
+    document.body.removeChild(modal);
+  });
 }
 
 async function editCost(id){
@@ -418,18 +583,58 @@ async function editCost(id){
   const cost = costData.costs.find(c => c.id === id);
   if(!cost) { showMsg('Cost not found', 'alert-danger'); return; }
 
-  const newAmount = prompt(`Edit amount (current: ${cost.amount}):`, cost.amount);
-  const newDescription = prompt(`Edit description (current: ${cost.description || ''}):`, cost.description || '');
-
-  if ((!newAmount || newAmount == cost.amount) && (newDescription === null || newDescription === cost.description)) return;
+  // Create a modal form
+  const modal = document.createElement('div');
+  modal.className = 'modal fade';
+  modal.innerHTML = `
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Cost</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="editCostForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Amount</label>
+              <input name="amount" type="number" step="0.01" class="form-control" value="${cost.amount}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <input name="description" class="form-control" value="${cost.description || ''}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Date</label>
+              <input name="date" type="datetime-local" class="form-control" value="${new Date(cost.date).toISOString().slice(0, 16)}" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  const modalInstance = new bootstrap.Modal(modal);
+  modalInstance.show();
+  
+  // Handle form submission
+  modal.querySelector('#editCostForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const updateData = {
+      amount: parseFloat(formData.get('amount')),
+      description: formData.get('description'),
+      date: new Date(formData.get('date')).toISOString()
+    };
     
-  const updateRes = await fetch(`/cost/${id}`, {
+    const updateRes = await fetch(`/cost/${id}`, {
       method:'PUT', 
       headers:{'Content-Type':'application/json'}, 
-      body: JSON.stringify({
-        amount: parseFloat(newAmount),
-        description: newDescription
-      })
+      body: JSON.stringify(updateData)
     });
     
     if(!updateRes.ok){ 
@@ -437,10 +642,18 @@ async function editCost(id){
       showMsg(d.error||'Error updating cost', 'alert-danger'); 
       return; 
     }
+    
+    showMsg('Cost updated successfully', 'alert-success');
+    modalInstance.hide();
+    await loadCosts();
+    await loadBalance();
+    await loadMonthlySummary();
+  });
   
-  showMsg('Cost updated successfully', 'alert-success');
-  await loadCosts();
-  await loadBalance();
+  // Clean up modal when hidden
+  modal.addEventListener('hidden.bs.modal', () => {
+    document.body.removeChild(modal);
+  });
 }
 
 async function editExpected(id){
@@ -450,42 +663,90 @@ async function editExpected(id){
   const expected = expectedData.expected.find(e => e.id === id);
   if(!expected) { showMsg('Expected cost not found', 'alert-danger'); return; }
 
-  const newAmount = prompt(`Edit amount (current: ${expected.amount}):`, expected.amount);
-  const newDescription = prompt(`Edit description (current: ${expected.description || ''}):`, expected.description || '');
-
-  if ((!newAmount || newAmount == expected.amount) && (newDescription === null || newDescription === expected.description)) return;
-
-  const updateRes = await fetch(`/expected/${id}`, {
+  // Create a modal form
+  const modal = document.createElement('div');
+  modal.className = 'modal fade';
+  modal.innerHTML = `
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Expected Cost</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form id="editExpectedForm">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Amount</label>
+              <input name="amount" type="number" step="0.01" class="form-control" value="${expected.amount}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Description</label>
+              <input name="description" class="form-control" value="${expected.description || ''}" required>
+            </div>
+            <div class="mb-3">
+              <small class="text-muted">Created: ${new Date(expected.created).toLocaleString()}</small>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  const modalInstance = new bootstrap.Modal(modal);
+  modalInstance.show();
+  
+  // Handle form submission
+  modal.querySelector('#editExpectedForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const updateData = {
+      amount: parseFloat(formData.get('amount')),
+      description: formData.get('description')
+    };
+    
+    const updateRes = await fetch(`/expected/${id}`, {
       method:'PUT', 
       headers:{'Content-Type':'application/json'}, 
-      body: JSON.stringify({
-        amount: parseFloat(newAmount),
-        description: newDescription
-      })
+      body: JSON.stringify(updateData)
     });
 
-  if(!updateRes.ok){ 
-    const d = await updateRes.json(); 
-    showMsg(d.error||'Error updating expected cost', 'alert-danger'); 
-    return; 
-  }
+    if(!updateRes.ok){ 
+      const d = await updateRes.json(); 
+      showMsg(d.error||'Error updating expected cost', 'alert-danger'); 
+      return; 
+    }
+    
+    showMsg('Expected cost updated successfully', 'alert-success');
+    modalInstance.hide();
+    await loadExpected();
+    await loadBalance();
+  });
   
-  showMsg('Expected cost updated successfully', 'alert-success');
-  await loadExpected();
-  await loadBalance();
+  // Clean up modal when hidden
+  modal.addEventListener('hidden.bs.modal', () => {
+    document.body.removeChild(modal);
+  });
 }
 
 document.getElementById('incomeForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const f = e.target;
-  if(!f.rate_id.value) { showMsg('Please select a rate', 'alert-danger'); return; }
+  if(!f.currency.value) { showMsg('Please select a currency', 'alert-danger'); return; }
   const body = {
     amount: parseFloat(f.amount.value), 
-    rate_id: parseInt(f.rate_id.value), 
+    currency: f.currency.value, 
     description: f.description.value,
     fixed_rate: f.fixed_rate.checked
   };
-  const res = await submitForm('/income', body);
+  if (f.date.value) {
+    body.date = new Date(f.date.value).toISOString();
+  }
+  const res = await submitForm('/income/currency', body);
   const data = await res.json();
   if(!res.ok){ showMsg(data.error || 'Error', 'alert-danger'); return; }
   const rateType = data.fixed_rate ? 'fixed' : 'dynamic';
@@ -495,28 +756,33 @@ document.getElementById('incomeForm').addEventListener('submit', async (e)=>{
   f.fixed_rate.checked = true;
   await loadBalance();
   await loadIncomes();
+  await loadMonthlySummary();
 });
 
 document.getElementById('costForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const f = e.target;
-  if(!f.rate_id.value) { showMsg('Please select a rate', 'alert-danger'); return; }
-  const body = {amount: parseFloat(f.amount.value), rate_id: parseInt(f.rate_id.value), description: f.description.value};
-  const res = await submitForm('/cost', body);
+  if(!f.currency.value) { showMsg('Please select a currency', 'alert-danger'); return; }
+  const body = {amount: parseFloat(f.amount.value), currency: f.currency.value, description: f.description.value};
+  if (f.date.value) {
+    body.date = new Date(f.date.value).toISOString();
+  }
+  const res = await submitForm('/cost/currency', body);
   const data = await res.json();
   if(!res.ok){ showMsg(data.error || 'Error', 'alert-danger'); return; }
   showMsg(`Cost added (${data.currency})`, 'alert-success');
   f.reset();
   await loadBalance();
   await loadCosts();
+  await loadMonthlySummary();
 });
 
 document.getElementById('expectedForm').addEventListener('submit', async (e)=>{
   e.preventDefault();
   const f = e.target;
-  if(!f.rate_id.value) { showMsg('Please select a rate', 'alert-danger'); return; }
-  const body = {amount: parseFloat(f.amount.value), rate_id: parseInt(f.rate_id.value), description: f.description.value};
-  const res = await submitForm('/expected', body);
+  if(!f.currency.value) { showMsg('Please select a currency', 'alert-danger'); return; }
+  const body = {amount: parseFloat(f.amount.value), currency: f.currency.value, description: f.description.value};
+  const res = await submitForm('/expected/currency', body);
   const data = await res.json();
   if(!res.ok){ showMsg(data.error || 'Error', 'alert-danger'); return; }
   showMsg(`Expected created (${data.currency})`, 'alert-success');
@@ -527,29 +793,103 @@ document.getElementById('expectedForm').addEventListener('submit', async (e)=>{
   await loadIncomes();
 });
 
-document.getElementById('rateForm').addEventListener('submit', async (e)=>{
+// Target management functions
+function toggleTargets() {
+  const editor = document.getElementById('targetEditor');
+  const toggle = document.getElementById('showTargets');
+  
+  if (toggle.checked) {
+    editor.style.display = 'block';
+    loadCurrentTarget();
+  } else {
+    editor.style.display = 'none';
+  }
+}
+
+async function loadCurrentTarget() {
+  try {
+    const res = await fetch('/monthly-target');
+    const data = await res.json();
+    document.getElementById('targetAmount').value = data.target_amount || '';
+  } catch (error) {
+    console.error('Error loading target:', error);
+  }
+}
+
+async function deleteTarget() {
+  if (!confirm('Are you sure you want to delete the monthly target?')) {
+    return;
+  }
+  
+  try {
+    const res = await fetch('/monthly-target', { method: 'DELETE' });
+    if (res.ok) {
+      document.getElementById('targetAmount').value = '';
+      await loadMonthlySummary();
+      showMessage('Target deleted successfully', 'success');
+    } else {
+      throw new Error('Failed to delete target');
+    }
+  } catch (error) {
+    console.error('Error deleting target:', error);
+    showMessage('Error deleting target', 'danger');
+  }
+}
+
+// Handle target form submission
+document.getElementById('targetForm').addEventListener('submit', async function(e) {
   e.preventDefault();
-  const f = e.target;
-  const body = {
-    from_currency: f.from_currency.value.toUpperCase(), 
-    to_currency: f.to_currency.value.toUpperCase(), 
-    rate: parseFloat(f.rate.value),
-    description: f.description.value.trim() || undefined
-  };
-  const res = await submitForm('/rates', body);
-  const data = await res.json();
-  if(!res.ok){ showMsg(data.error || 'Error', 'alert-danger'); return; }
-  showMsg(`Rate added${data.inverse_added ? ' (inverse also added)' : ''}`, 'alert-success');
-  f.reset();
-  await loadRates();
+  const amount = document.getElementById('targetAmount').value;
+  
+  if (!amount) {
+    showMessage('Please enter a target amount', 'warning');
+    return;
+  }
+  
+  try {
+    const res = await fetch('/monthly-target', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target_amount: parseFloat(amount) })
+    });
+    
+    if (res.ok) {
+      await loadMonthlySummary();
+      showMessage('Target saved successfully', 'success');
+    } else {
+      const error = await res.json();
+      throw new Error(error.error || 'Failed to save target');
+    }
+  } catch (error) {
+    console.error('Error saving target:', error);
+    showMessage('Error saving target: ' + error.message, 'danger');
+  }
 });
 
 // initial load
-loadRates();
+loadCurrencies();
+loadAllRates();
 loadBalance();
+loadMonthlySummary();
 loadExpected();
 loadIncomes();
 loadCosts();
+
+// Set default date/time values
+setDefaultDateTime();
+
+// Update default date/time when forms are reset
+document.addEventListener('DOMContentLoaded', function() {
+  setDefaultDateTime();
+  
+  // Also set default when forms are reset
+  const forms = document.querySelectorAll('form');
+  forms.forEach(form => {
+    form.addEventListener('reset', function() {
+      setTimeout(setDefaultDateTime, 0);
+    });
+  });
+});
 </script>
 
 {% endblock %}
