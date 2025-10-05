@@ -708,8 +708,8 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
         cost = db.session.get(Cost, cost_id)
         if cost is None:
             return {"error": "cost not found"}, 404
-        if cost.expected_ref is not None:
-            cost.expected_ref.norm_remaining += cost.norm_amount
+        # if cost.expected_ref is not None:
+        #     cost.expected_ref.norm_remaining += cost.norm_amount
         db.session.delete(cost)
         db.session.commit()
         return {"deleted": cost_id}
