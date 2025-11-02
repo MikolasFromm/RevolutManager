@@ -281,6 +281,15 @@ async function loadMonthlySummary(){
       return; 
     }
     
+    // Fetch monthly target and balance for survival calculation
+    const targetRes = await fetch('/monthly-target');
+    const targetData = await targetRes.json();
+    const monthlyTarget = targetData.target_amount;
+    
+    const balanceRes = await fetch('/balance');
+    const balanceData = await balanceRes.json();
+    const totalRemaining = balanceData.balance;
+    
     let html = '<div class="table-responsive">';
     html += '<table class="table table-sm table-borderless mb-0">';
     html += '<thead><tr>';
@@ -334,6 +343,17 @@ async function loadMonthlySummary(){
     }
     
     html += '</tbody></table></div>';
+    
+    // Add survival months calculation if monthly target exists
+    if (monthlyTarget && monthlyTarget > 0 && totalRemaining > 0) {
+      const survivalMonths = (totalRemaining / monthlyTarget).toFixed(1);
+      const survivalColor = survivalMonths >= 3 ? 'text-success' : survivalMonths >= 1 ? 'text-warning' : 'text-danger';
+      html += `<div class="mt-2 pt-2 border-top">
+                 <small class="text-muted">Survival time after horizon: </small>
+                 <strong class="${survivalColor}">${survivalMonths} months</strong>
+               </div>`;
+    }
+    
     root.innerHTML = html;
     
   } catch (error) {
