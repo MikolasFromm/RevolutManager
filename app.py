@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, Blueprint
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime, timedelta
+from datetime import datetime
 import calendar
 import requests
 import re
@@ -303,50 +303,84 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
             "total_expected_remaining_czk": total_expected_remaining_czk if db_rate else None,
         }
     
-    def get_monthly_summary(months_back=3):
-        """Get monthly balance summary for the last X months"""
+    def get_monthly_summary(period='3m'):
+        """Get monthly balance summary for a supported period.
+
+        Supported period values:
+        - 3m
+        - 12m
+        - ytd
+        - all
+        - <Nm> where N is 1..24 (backward compatible)
+        """
         summaries = []
         now = datetime.now()
-        
-        for i in range(months_back):
-            # Calculate the target month
-            year = now.year
-            month = now.month - i
-            
-            # Handle year rollover
-            while month <= 0:
-                month += 12
-                year -= 1
-            
-            # Get first and last day of the month
+
+        period_key = (period or '3m').strip().lower()
+        if not period_key:
+            period_key = '3m'
+
+        end_index = now.year * 12 + (now.month - 1)
+
+        if period_key == 'ytd':
+            start_year = now.year
+            start_month = 1
+        elif period_key == 'all':
+            oldest_income = db.session.query(db.func.min(Income.date)).scalar()
+            oldest_cost = db.session.query(db.func.min(Cost.date)).scalar()
+            candidates = [d for d in (oldest_income, oldest_cost) if d is not None]
+            if not candidates:
+                return []
+            oldest_date = min(candidates)
+            start_year = oldest_date.year
+            start_month = oldest_date.month
+        else:
+            match = re.match(r'^(\d+)m$', period_key)
+            if not match:
+                raise ValueError('invalid period')
+            months_back = int(match.group(1))
+            if months_back < 1 or months_back > 24:
+                raise ValueError('invalid period range')
+
+            start_index = end_index - (months_back - 1)
+            start_year = start_index // 12
+            start_month = (start_index % 12) + 1
+
+        start_index = start_year * 12 + (start_month - 1)
+
+        # Query once per request; target is shared across all months.
+        cost_target = MonthlyCostTarget.query.first()
+        target_amount = cost_target.target_amount if cost_target else None
+
+        for month_index in range(end_index, start_index - 1, -1):
+            year = month_index // 12
+            month = (month_index % 12) + 1
+
             first_day = datetime(year, month, 1)
             if month == 12:
-                last_day = datetime(year + 1, 1, 1) - timedelta(days=1)
+                next_month = datetime(year + 1, 1, 1)
             else:
-                last_day = datetime(year, month + 1, 1) - timedelta(days=1)
-            
+                next_month = datetime(year, month + 1, 1)
+
             # Query incomes for this month
             monthly_incomes = Income.query.filter(
                 Income.date >= first_day,
-                Income.date <= last_day
+                Income.date < next_month
             ).all()
-            
+
             # Query costs for this month
             monthly_costs = Cost.query.filter(
                 Cost.date >= first_day,
-                Cost.date <= last_day
+                Cost.date < next_month
             ).all()
-            
+
             # Calculate totals
             total_income = sum(income.current_norm_amount for income in monthly_incomes)
             total_costs = sum(cost.norm_amount for cost in monthly_costs)
             balance = total_income - total_costs
-            
-            # Get the single monthly cost target (if it exists)
-            cost_target = MonthlyCostTarget.query.first()
-            target_amount = cost_target.target_amount if cost_target else None
+
             cost_diff = (target_amount - total_costs) if target_amount is not None else None
-            
+
             summaries.append({
                 'year': year,
                 'month': month,
@@ -365,11 +399,22 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
     @bp.route('/monthly-summary', methods=['GET'])
     def get_monthly_summary_api():
         """API endpoint for monthly balance summary"""
-        months = request.args.get('months', 3, type=int)
-        if months < 1 or months > 24:
-            return {"error": "months must be between 1 and 24"}, 400
-        
-        summaries = get_monthly_summary(months)
+        period = request.args.get('period', None, type=str)
+        months = request.args.get('months', None, type=int)
+
+        # Backward-compatible: if only numeric months is provided, map to <Nm> period.
+        if period is None and months is not None:
+            if months < 1 or months > 24:
+                return {"error": "months must be between 1 and 24"}, 400
+            period = f"{months}m"
+
+        if period is None:
+            period = '3m'
+
+        try:
+            summaries = get_monthly_summary(period)
+        except ValueError:
+            return {"error": "period must be one of: 3m, 12m, ytd, all"}, 400
         
         # Add CZK conversion
         db_rate = PredefinedRate.query.filter_by(from_currency=BASE_CURRENCY, to_currency='CZK').first()
@@ -385,7 +430,11 @@ def create_app(test_config: Optional[Dict[str, Any]] = None):
                 if summary['cost_diff'] is not None:
                     summary['cost_diff_czk'] = summary['cost_diff'] * czk_rate
         
-        return {"summaries": summaries, "has_czk": czk_rate is not None}
+        return {
+            "summaries": summaries,
+            "has_czk": czk_rate is not None,
+            "period": period.strip().lower()
+        }
 
     @bp.route('/income', methods=['POST'])
     def add_income():
